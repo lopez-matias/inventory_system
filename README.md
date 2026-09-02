@@ -1,4 +1,4 @@
-# StockFlow · Sistema de Gestión de Inventario
+# StockFlow · Inventory Management System
 
 ![Python](https://img.shields.io/badge/Python-3.11%2B-3776AB?logo=python&logoColor=white)
 ![FastAPI](https://img.shields.io/badge/FastAPI-0.115%2B-009688?logo=fastapi&logoColor=white)
@@ -6,96 +6,96 @@
 ![SQLAlchemy](https://img.shields.io/badge/SQLAlchemy-2.x-D71F00?logo=sqlalchemy&logoColor=white)
 ![Tests](https://img.shields.io/badge/tests-pytest-0A9EDC?logo=pytest&logoColor=white)
 
-Aplicación web para centralizar productos, ubicaciones, existencias y movimientos de inventario. Está orientada a pequeñas y medianas organizaciones que desean reemplazar hojas de cálculo y controles manuales por una fuente de información consistente y trazable.
+StockFlow is a web application that centralizes products, storage locations, inventory levels, and stock movements. It is designed for small and medium-sized businesses that want to replace disconnected spreadsheets and manual controls with a consistent, traceable source of information.
 
-FastAPI sirve la API REST y la interfaz web. El frontend está construido con HTML, CSS y JavaScript nativo, sin Node.js ni un proceso de compilación.
+FastAPI serves both the REST API and the web interface. The frontend uses plain HTML, CSS, and vanilla JavaScript, with no Node.js dependency or build step.
 
-> **Estado:** versión funcional de portafolio, preparada para ejecución local y evolución. No representa uso, clientes ni resultados de producción.
+> **Status:** functional portfolio project prepared for local use and future development. It does not claim real customers, financial results, or production usage.
 
-![Dashboard de StockFlow](docs/images/dashboard.png)
+![StockFlow dashboard](docs/images/dashboard.png)
 
-## Contenido
+## Table of contents
 
-- [Qué resuelve](#qué-resuelve)
-- [Funcionalidades](#funcionalidades)
-- [Reglas de negocio](#reglas-de-negocio)
-- [Arquitectura](#arquitectura)
-- [Modelo de datos](#modelo-de-datos)
-- [Inicio rápido](#inicio-rápido)
-- [Configuración](#configuración)
-- [Migraciones y datos demo](#migraciones-y-datos-demo)
-- [API REST](#api-rest)
-- [Pruebas y CI](#pruebas-y-ci)
-- [Estructura del repositorio](#estructura-del-repositorio)
-- [Solución de problemas](#solución-de-problemas)
-- [Próximas mejoras](#próximas-mejoras)
+- [Business problem](#business-problem)
+- [Features](#features)
+- [Business rules](#business-rules)
+- [Architecture](#architecture)
+- [Data model](#data-model)
+- [Quick start](#quick-start)
+- [Configuration](#configuration)
+- [Migrations and demo data](#migrations-and-demo-data)
+- [REST API](#rest-api)
+- [Testing and CI](#testing-and-ci)
+- [Repository structure](#repository-structure)
+- [Troubleshooting](#troubleshooting)
+- [Roadmap](#roadmap)
 
-## Qué resuelve
+## Business problem
 
-El control de inventario mediante archivos Excel separados dificulta saber cuánto stock existe, dónde está y qué operación produjo cada cambio. StockFlow concentra estas responsabilidades en una aplicación con:
+Inventory managed through separate spreadsheets makes it difficult to determine how much stock is available, where it is stored, and which operation caused each change. StockFlow addresses these problems with:
 
-- existencias por producto y ubicación;
-- historial cronológico e inmutable de operaciones;
-- validaciones antes de afectar stock;
-- transferencias consistentes entre depósitos o tiendas;
-- alertas sobre productos por debajo de su mínimo;
-- una API reutilizable además de la interfaz web.
+- inventory levels per product and location;
+- a chronological, immutable movement history;
+- validation before inventory is changed;
+- consistent transfers between warehouses or stores;
+- low-stock alerts based on configurable thresholds;
+- a reusable REST API in addition to the web interface.
 
-## Funcionalidades
+## Features
 
-| Módulo | Capacidades |
+| Module | Capabilities |
 |---|---|
-| Dashboard | Productos activos, unidades totales, alertas de mínimo, actividad reciente y stock por ubicación |
-| Productos | SKU único, nombre, descripción, categoría, unidad, mínimo y estado |
-| Ubicaciones | Depósitos, tiendas u otros puntos de stock con descripción y estado |
-| Inventario | Cantidad actual por combinación de producto y ubicación, búsqueda y filtro de alertas |
-| Movimientos | Entradas, salidas, ajustes y transferencias con fecha, ubicaciones y notas |
-| API | Endpoints REST, validación de contratos y documentación OpenAPI |
+| Dashboard | Active products, total units, low-stock alerts, recent activity, and stock by location |
+| Products | Unique SKU, name, description, category, unit, minimum stock, and status |
+| Locations | Warehouses, stores, or other stock points with descriptions and status |
+| Inventory | Current quantity per product and location, search, and alert filtering |
+| Movements | Entries, exits, adjustments, and transfers with timestamps, locations, and notes |
+| API | REST endpoints, request validation, structured errors, and OpenAPI documentation |
 
-La interfaz incluye navegación lateral, diseño responsive, formularios, confirmaciones, filtros, mensajes de resultado y estados vacíos.
+The Spanish-language interface includes sidebar navigation, responsive layouts, forms, confirmation prompts, filters, feedback messages, and empty states.
 
-## Reglas de negocio
+## Business rules
 
-- El stock nunca puede quedar negativo.
-- Una salida o ajuste negativo requiere disponibilidad suficiente.
-- Una transferencia exige ubicaciones diferentes y actualiza origen y destino en una sola transacción.
-- Los movimientos permanecen en el historial y no tienen endpoints de modificación o eliminación.
-- `DELETE` sobre productos y ubicaciones realiza una desactivación lógica; no elimina información histórica.
-- Los productos o ubicaciones inactivos siguen siendo consultables, pero no admiten movimientos nuevos.
-- El SKU se normaliza a mayúsculas y es único.
-- El mínimo del dashboard se calcula sobre el stock total del producto en todas las ubicaciones.
+- Inventory can never become negative.
+- An exit or negative adjustment requires sufficient available stock.
+- A transfer requires different source and destination locations and updates both within one transaction.
+- Movements remain in history and cannot be updated or deleted through the API.
+- `DELETE` on products and locations performs a logical deactivation instead of physical deletion.
+- Inactive products and locations remain queryable but cannot receive new movements.
+- SKUs are normalized to uppercase and must be unique.
+- Dashboard low-stock status compares the product minimum against its total quantity across locations.
 
-## Arquitectura
+## Architecture
 
-El proyecto usa una arquitectura compacta: las rutas se ocupan de HTTP, Pydantic valida contratos, el servicio de inventario contiene las reglas transaccionales y SQLAlchemy administra la persistencia.
+The project uses a compact architecture: routers handle HTTP, Pydantic validates contracts, the inventory service owns transactional business rules, and SQLAlchemy manages persistence.
 
 ```mermaid
 flowchart LR
-    UI[HTML + CSS + JavaScript] --> API[FastAPI / API REST]
+    UI[HTML + CSS + JavaScript] --> API[FastAPI / REST API]
     API --> ROUTERS[Routers]
-    ROUTERS --> SERVICE[Servicio de inventario]
+    ROUTERS --> SERVICE[Inventory service]
     ROUTERS --> ORM[SQLAlchemy 2.x]
     SERVICE --> ORM
     ORM --> DB[(PostgreSQL)]
     ALEMBIC[Alembic] --> DB
 ```
 
-Las operaciones de stock bloquean las filas involucradas con `SELECT ... FOR UPDATE`. Las ubicaciones se bloquean en orden determinista para reducir interbloqueos, y cualquier excepción revierte la transacción completa.
+Stock operations lock the relevant rows with `SELECT ... FOR UPDATE`. Locations are locked in deterministic order to reduce deadlock risk, and any exception rolls back the complete transaction.
 
-### Tecnologías
+### Technology stack
 
 - Python 3.11+
-- FastAPI y Uvicorn
+- FastAPI and Uvicorn
 - SQLAlchemy 2.x
-- PostgreSQL y Psycopg 3
+- PostgreSQL and Psycopg 3
 - Alembic
 - Pydantic Settings
 - Jinja2
-- HTML5, CSS3 y JavaScript nativo
-- pytest y HTTPX
+- HTML5, CSS3, and vanilla JavaScript
+- pytest and HTTPX
 - GitHub Actions
 
-## Modelo de datos
+## Data model
 
 ```mermaid
 erDiagram
@@ -137,26 +137,26 @@ erDiagram
     }
 ```
 
-| Tipo | Cantidad | Origen | Destino | Efecto |
+| Type | Quantity | Source | Destination | Effect |
 |---|---:|---|---|---|
-| `ENTRY` | Positiva | — | Obligatorio | Incrementa el destino |
-| `EXIT` | Positiva | Obligatorio | — | Descuenta el origen |
-| `TRANSFER` | Positiva | Obligatorio | Obligatorio | Descuenta y suma atómicamente |
-| `ADJUSTMENT` | Positiva o negativa | — | Obligatorio | Corrige el stock de la ubicación |
+| `ENTRY` | Positive | — | Required | Increases destination stock |
+| `EXIT` | Positive | Required | — | Decreases source stock |
+| `TRANSFER` | Positive | Required | Required | Decreases source and increases destination atomically |
+| `ADJUSTMENT` | Positive or negative | — | Required | Corrects stock at one location |
 
-PostgreSQL también aplica restricciones para cantidades, unicidad, claves foráneas y estructura válida de movimientos.
+PostgreSQL also enforces constraints for quantities, uniqueness, foreign keys, and valid movement structure.
 
-## Inicio rápido
+## Quick start
 
-### Requisitos
+### Requirements
 
-- Python 3.11 o superior
-- PostgreSQL en ejecución
+- Python 3.11 or newer
+- PostgreSQL
 - Git
 
-### 1. Preparar PostgreSQL
+### 1. Prepare PostgreSQL
 
-En Ubuntu o Debian:
+On Ubuntu or Debian:
 
 ```bash
 sudo apt update
@@ -165,7 +165,7 @@ sudo systemctl enable --now postgresql
 sudo -u postgres psql
 ```
 
-Dentro de `psql`:
+Inside `psql`:
 
 ```sql
 CREATE USER inventory_user WITH PASSWORD 'inventory_password';
@@ -173,11 +173,11 @@ CREATE DATABASE inventory_db OWNER inventory_user;
 \q
 ```
 
-Las credenciales anteriores son únicamente para desarrollo local. Usa valores diferentes en cualquier entorno compartido.
+These credentials are intended for local development only. Use different credentials in any shared environment.
 
-### 2. Crear el entorno Python
+### 2. Create the Python environment
 
-Linux o macOS:
+Linux or macOS:
 
 ```bash
 python3 -m venv .venv
@@ -195,9 +195,9 @@ python -m pip install --upgrade pip
 python -m pip install -r requirements.txt
 ```
 
-### 3. Configurar, migrar y ejecutar
+### 3. Configure, migrate, and run
 
-Linux o macOS:
+Linux or macOS:
 
 ```bash
 cp .env.example .env
@@ -215,67 +215,67 @@ python -m app.seed
 python -m uvicorn app.main:app --reload
 ```
 
-Abre en el navegador:
+Open:
 
-- Aplicación: <http://127.0.0.1:8000>
+- Application: <http://127.0.0.1:8000>
 - Swagger UI: <http://127.0.0.1:8000/docs>
 - ReDoc: <http://127.0.0.1:8000/redoc>
 
-## Configuración
+## Configuration
 
-La configuración se carga desde variables de entorno y, durante el desarrollo, desde `.env`.
+Configuration is loaded from environment variables and, during local development, from `.env`.
 
-| Variable | Valor de ejemplo | Propósito |
+| Variable | Example | Purpose |
 |---|---|---|
-| `INVENTORY_APP_NAME` | `Sistema de Gestión de Inventario` | Nombre de la aplicación y de OpenAPI |
-| `INVENTORY_APP_ENVIRONMENT` | `development` | Identificador del entorno |
-| `INVENTORY_DEBUG` | `false` | Modo de depuración de FastAPI |
-| `INVENTORY_DATABASE_URL` | `postgresql+psycopg://...` | URL de conexión de SQLAlchemy |
-| `INVENTORY_RECENT_MOVEMENTS_LIMIT` | `8` | Movimientos visibles en el dashboard |
+| `INVENTORY_APP_NAME` | `Inventory Management System` | Application and OpenAPI title |
+| `INVENTORY_APP_ENVIRONMENT` | `development` | Environment identifier |
+| `INVENTORY_DEBUG` | `false` | FastAPI debug mode |
+| `INVENTORY_DATABASE_URL` | `postgresql+psycopg://...` | SQLAlchemy database URL |
+| `INVENTORY_RECENT_MOVEMENTS_LIMIT` | `8` | Number of movements shown on the dashboard |
 
-El prefijo `INVENTORY_` evita colisiones con variables genéricas del sistema. `.env` está ignorado por Git y nunca debe publicarse.
+The `INVENTORY_` prefix prevents collisions with generic system variables. The `.env` file is ignored by Git and must never be published.
 
-## Migraciones y datos demo
+## Migrations and demo data
 
-La aplicación no crea tablas automáticamente al iniciar. Alembic es la única fuente de evolución del esquema:
+The application does not create tables automatically at startup. Alembic is the only source of database schema changes:
 
 ```bash
 alembic upgrade head
 alembic current
 ```
 
-Después de modificar modelos:
+After changing the SQLAlchemy models:
 
 ```bash
-alembic revision --autogenerate -m "descripcion del cambio"
+alembic revision --autogenerate -m "describe the change"
 alembic upgrade head
 ```
 
-Revisa siempre las operaciones `upgrade` y `downgrade` antes de confirmar una migración.
+Always review the generated `upgrade` and `downgrade` operations before committing a migration.
 
-Para cargar datos genéricos de demostración:
+Load the generic demonstration dataset with:
 
 ```bash
 python -m app.seed
 ```
 
-El seed es idempotente para catálogos y solo agrega sus movimientos cuando el historial está vacío. No contiene empresas, clientes ni resultados reales.
+The seed process is idempotent for catalog records and only inserts its movements when movement history is empty. It does not contain real companies, customers, usage, or financial results.
 
-## API REST
+## REST API
 
-| Método | Endpoint | Descripción |
+| Method | Endpoint | Description |
 |---|---|---|
-| `GET`, `POST` | `/api/products` | Listar o crear productos |
-| `GET`, `PATCH`, `DELETE` | `/api/products/{id}` | Consultar, actualizar o desactivar un producto |
-| `GET`, `POST` | `/api/locations` | Listar o crear ubicaciones |
-| `GET`, `PATCH`, `DELETE` | `/api/locations/{id}` | Consultar, actualizar o desactivar una ubicación |
-| `GET` | `/api/inventory` | Consultar existencias y filtros |
-| `GET`, `POST` | `/api/movements` | Consultar o registrar movimientos |
-| `GET` | `/api/movements/{id}` | Consultar un movimiento histórico |
-| `GET` | `/api/dashboard` | Obtener métricas y resúmenes |
-| `GET` | `/api/health` | Comprobar el estado básico de la API |
+| `GET`, `POST` | `/api/products` | List or create products |
+| `GET`, `PATCH`, `DELETE` | `/api/products/{id}` | Read, update, or deactivate a product |
+| `GET`, `POST` | `/api/locations` | List or create locations |
+| `GET`, `PATCH`, `DELETE` | `/api/locations/{id}` | Read, update, or deactivate a location |
+| `GET` | `/api/inventory` | Query stock levels and filters |
+| `GET`, `POST` | `/api/movements` | List or register movements |
+| `GET` | `/api/movements/{id}` | Read a historical movement |
+| `GET` | `/api/dashboard` | Read metrics and summaries |
+| `GET` | `/api/health` | Check basic API status |
 
-Ejemplo de entrada de stock:
+Example stock entry:
 
 ```bash
 curl -X POST http://127.0.0.1:8000/api/movements \
@@ -285,68 +285,68 @@ curl -X POST http://127.0.0.1:8000/api/movements \
     "product_id": 1,
     "quantity": 25,
     "destination_location_id": 1,
-    "notes": "Recepción de mercadería"
+    "notes": "Goods received"
   }'
 ```
 
-Los errores de negocio incluyen un mensaje `detail` y un `code` estable, como `duplicate_sku` o `insufficient_stock`. Los contratos inválidos reciben la respuesta estándar `422` de FastAPI.
+Business errors contain a readable `detail` and a stable `code`, such as `duplicate_sku` or `insufficient_stock`. Invalid request contracts receive FastAPI's standard `422` response.
 
-## Pruebas y CI
+## Testing and CI
 
-Instala las dependencias de desarrollo y ejecuta la suite:
+Install development dependencies and run the test suite:
 
 ```bash
 python -m pip install -r requirements-dev.txt
 pytest
 ```
 
-La suite cubre:
+The suite covers:
 
-- creación de productos;
-- rechazo de SKU duplicado;
-- entradas y salidas;
-- stock insuficiente sin cambios parciales;
-- transferencias entre ubicaciones;
-- cálculo de productos bajo mínimo.
+- product creation;
+- duplicate SKU rejection;
+- stock entries and exits;
+- insufficient stock without partial changes;
+- transfers between locations;
+- low-stock calculation.
 
-Las pruebas usan SQLite en memoria y no modifican PostgreSQL. El workflow de GitHub Actions ejecuta pytest con Python 3.11, 3.12, 3.13 y 3.14 en cada push o pull request dirigido a `main`.
+Tests use in-memory SQLite and do not modify PostgreSQL. The GitHub Actions workflow runs pytest with Python 3.11, 3.12, 3.13, and 3.14 on every push or pull request targeting `main`.
 
-## Estructura del repositorio
+## Repository structure
 
 ```text
 .
 ├── .github/
-│   ├── ISSUE_TEMPLATE/         # formularios de errores y mejoras
-│   ├── workflows/tests.yml     # integración continua
+│   ├── ISSUE_TEMPLATE/         # bug and feature forms
+│   ├── workflows/tests.yml     # continuous integration
 │   └── pull_request_template.md
 ├── alembic/
-│   ├── versions/               # revisiones de base de datos
+│   ├── versions/               # database revisions
 │   └── env.py
 ├── app/
-│   ├── routers/                # endpoints por recurso
-│   ├── services/               # reglas transaccionales
-│   ├── static/                 # CSS y JavaScript
-│   ├── templates/              # interfaz HTML
+│   ├── routers/                # REST endpoints by resource
+│   ├── services/               # transactional business rules
+│   ├── static/                 # CSS and JavaScript
+│   ├── templates/              # HTML interface
 │   ├── config.py
 │   ├── database.py
 │   ├── models.py
 │   ├── schemas.py
 │   ├── seed.py
 │   └── main.py
-├── docs/images/                # recursos del README
-├── tests/                      # pruebas funcionales
+├── docs/images/                # README assets
+├── tests/                      # functional test suite
 ├── .env.example
 ├── CONTRIBUTING.md
 ├── CHANGELOG.md
-├── requirements.txt            # ejecución
-└── requirements-dev.txt        # pruebas y desarrollo
+├── requirements.txt            # runtime dependencies
+└── requirements-dev.txt        # testing dependencies
 ```
 
-## Solución de problemas
+## Troubleshooting
 
 ### `password authentication failed`
 
-La contraseña en `.env` no coincide con la del rol PostgreSQL. Para un entorno local con los valores de ejemplo:
+The password in `.env` does not match the PostgreSQL role. For a local environment using the example values:
 
 ```bash
 sudo -u postgres psql -c "ALTER ROLE inventory_user WITH LOGIN PASSWORD 'inventory_password';"
@@ -354,7 +354,7 @@ sudo -u postgres psql -c "ALTER ROLE inventory_user WITH LOGIN PASSWORD 'invento
 
 ### `relation ... does not exist`
 
-Confirma que `.env` apunte a la base correcta y aplica la migración antes de iniciar:
+Confirm that `.env` points to the intended database and apply migrations before startup:
 
 ```bash
 alembic current
@@ -363,29 +363,28 @@ alembic upgrade head
 
 ### `relation "products" already exists`
 
-La base contiene un esquema previo no administrado por estas migraciones. Usa una base PostgreSQL vacía o migra esos datos explícitamente; no marques la revisión como aplicada sin comprobar que todo el esquema coincide.
+The database contains a previous schema that is not managed by these migrations. Use an empty PostgreSQL database or migrate the existing data explicitly. Do not mark the revision as applied unless the complete schema matches.
 
-### La interfaz muestra “No pudimos cargar la información”
+### The interface shows “No pudimos cargar la información”
 
-La interfaz se sirvió, pero un endpoint devolvió un error. Revisa el traceback en la terminal de Uvicorn y prueba <http://127.0.0.1:8000/api/health>.
+The interface loaded, but an API endpoint returned an error. Check the traceback in the Uvicorn terminal and open <http://127.0.0.1:8000/api/health>.
 
-## Contribución
+## Contributing
 
-Consulta [CONTRIBUTING.md](CONTRIBUTING.md) para preparar el entorno, ejecutar pruebas y abrir cambios. Los reportes de errores y propuestas cuentan con plantillas dentro de `.github/ISSUE_TEMPLATE`.
+See [CONTRIBUTING.md](CONTRIBUTING.md) for environment setup, test expectations, and pull request guidance. Bug reports and feature proposals have dedicated forms under `.github/ISSUE_TEMPLATE`.
 
-## Próximas mejoras
+## Roadmap
 
-- autenticación y permisos por rol;
-- identidad del operador en cada movimiento;
-- proveedores, compras y recepciones parciales;
-- reservas y stock disponible;
-- mínimos específicos por producto y ubicación;
-- importación validada desde CSV;
-- reportes exportables y lectura de códigos de barras;
-- pruebas de integración contra PostgreSQL;
-- observabilidad y estrategia de despliegue.
+- authentication and role-based access;
+- operator identity on every movement;
+- suppliers, purchase orders, and partial receipts;
+- reservations and available-stock calculations;
+- minimum levels per product and location;
+- validated CSV imports;
+- exportable reports and barcode support;
+- PostgreSQL integration tests;
+- observability and deployment guidance.
 
-## Licencia
+## License
 
-El repositorio aún no declara una licencia. Antes de permitir reutilización o distribución, el propietario debe elegir y agregar una licencia acorde con sus objetivos.
-# inventory_system
+This repository does not currently declare a license. The owner should choose and add a license before granting reuse or distribution rights.

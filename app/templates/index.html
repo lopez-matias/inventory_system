@@ -1,0 +1,116 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Panel centralizado para controlar productos, ubicaciones y movimientos de stock.">
+  <title>{{ app_name }}</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Crect width='24' height='24' rx='6' fill='%232368d8'/%3E%3Cpath d='m5 8 7-4 7 4v8l-7 4-7-4V8Zm0 0 7 4m7-4-7 4m0 0v8' fill='none' stroke='white' stroke-width='1.4'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="{{ url_for('static', path='/css/styles.css') }}">
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar" id="sidebar">
+      <div class="brand">
+        <span class="brand-mark" aria-hidden="true">
+          <svg viewBox="0 0 24 24"><path d="M4 7.5 12 3l8 4.5v9L12 21l-8-4.5v-9Z"/><path d="m4.3 7.7 7.7 4.4 7.7-4.4M12 12v9"/></svg>
+        </span>
+        <span><strong>StockFlow</strong><small>Control de inventario</small></span>
+      </div>
+
+      <nav class="main-nav" aria-label="Navegación principal">
+        <a href="#dashboard" data-page="dashboard" class="nav-link active"><span class="nav-icon">⌂</span>Dashboard</a>
+        <a href="#products" data-page="products" class="nav-link"><span class="nav-icon">□</span>Productos</a>
+        <a href="#locations" data-page="locations" class="nav-link"><span class="nav-icon">⌖</span>Ubicaciones</a>
+        <a href="#inventory" data-page="inventory" class="nav-link"><span class="nav-icon">▦</span>Inventario</a>
+        <a href="#movements" data-page="movements" class="nav-link"><span class="nav-icon">⇄</span>Movimientos</a>
+      </nav>
+
+      <div class="sidebar-footer">
+        <span class="status-dot"></span>
+        <span><strong>Sistema operativo</strong><small>API conectada</small></span>
+      </div>
+    </aside>
+
+    <div class="sidebar-overlay" id="sidebar-overlay"></div>
+
+    <div class="workspace">
+      <header class="topbar">
+        <button class="icon-button menu-button" id="menu-button" aria-label="Abrir menú">☰</button>
+        <div>
+          <h1 id="page-title">Dashboard</h1>
+          <p id="page-subtitle">Resumen operativo del inventario</p>
+        </div>
+        <div class="topbar-actions">
+          <a class="docs-link" href="/docs" target="_blank" rel="noopener">API Docs</a>
+          <span class="avatar" aria-label="Administrador">AD</span>
+        </div>
+      </header>
+
+      <main id="main-content" class="content" tabindex="-1">
+        <div class="loading-state"><span class="spinner"></span><p>Cargando información…</p></div>
+      </main>
+    </div>
+  </div>
+
+  <dialog id="product-dialog" class="modal">
+    <form id="product-form">
+      <div class="modal-header">
+        <div><span class="eyebrow">CATÁLOGO</span><h2 id="product-dialog-title">Nuevo producto</h2></div>
+        <button type="button" class="icon-button" data-close="product-dialog" aria-label="Cerrar">×</button>
+      </div>
+      <input type="hidden" name="id">
+      <div class="form-grid">
+        <label>SKU <span>*</span><input name="sku" maxlength="64" required placeholder="Ej. INS-001"></label>
+        <label>Nombre <span>*</span><input name="name" maxlength="160" required placeholder="Nombre del producto"></label>
+        <label>Categoría <span>*</span><input name="category" maxlength="100" required placeholder="Ej. Insumos"></label>
+        <label>Unidad <span>*</span><input name="unit" maxlength="30" required placeholder="unidad, kg, caja…"></label>
+        <label>Stock mínimo <span>*</span><input name="minimum_stock" type="number" min="0" step="0.001" required value="0"></label>
+        <label class="toggle-label">Estado <span class="toggle-control"><input name="is_active" type="checkbox" checked><i></i>Activo</span></label>
+        <label class="full-width">Descripción<textarea name="description" maxlength="2000" rows="3" placeholder="Información útil para identificar el producto"></textarea></label>
+      </div>
+      <div class="modal-actions"><button type="button" class="button secondary" data-close="product-dialog">Cancelar</button><button class="button primary" type="submit">Guardar producto</button></div>
+    </form>
+  </dialog>
+
+  <dialog id="location-dialog" class="modal">
+    <form id="location-form">
+      <div class="modal-header">
+        <div><span class="eyebrow">RED LOGÍSTICA</span><h2 id="location-dialog-title">Nueva ubicación</h2></div>
+        <button type="button" class="icon-button" data-close="location-dialog" aria-label="Cerrar">×</button>
+      </div>
+      <input type="hidden" name="id">
+      <div class="form-grid">
+        <label class="full-width">Nombre <span>*</span><input name="name" maxlength="160" required placeholder="Ej. Depósito central"></label>
+        <label class="full-width">Descripción<textarea name="description" maxlength="2000" rows="4" placeholder="Dirección, sector o referencia interna"></textarea></label>
+        <label class="toggle-label full-width">Estado <span class="toggle-control"><input name="is_active" type="checkbox" checked><i></i>Activa</span></label>
+      </div>
+      <div class="modal-actions"><button type="button" class="button secondary" data-close="location-dialog">Cancelar</button><button class="button primary" type="submit">Guardar ubicación</button></div>
+    </form>
+  </dialog>
+
+  <dialog id="movement-dialog" class="modal modal-wide">
+    <form id="movement-form">
+      <div class="modal-header">
+        <div><span class="eyebrow">OPERACIÓN DE STOCK</span><h2>Registrar movimiento</h2></div>
+        <button type="button" class="icon-button" data-close="movement-dialog" aria-label="Cerrar">×</button>
+      </div>
+      <div class="form-grid">
+        <label>Tipo <span>*</span><select name="movement_type" required>
+          <option value="ENTRY">Entrada</option><option value="EXIT">Salida</option><option value="TRANSFER">Transferencia</option><option value="ADJUSTMENT">Ajuste</option>
+        </select></label>
+        <label>Producto <span>*</span><select name="product_id" required></select></label>
+        <label>Cantidad <span>*</span><input name="quantity" type="number" step="0.001" required min="0.001" placeholder="0"></label>
+        <label id="source-location-field">Origen <span>*</span><select name="source_location_id"></select></label>
+        <label id="destination-location-field">Destino <span>*</span><select name="destination_location_id"></select></label>
+        <label class="full-width">Notas<textarea name="notes" maxlength="2000" rows="3" placeholder="Motivo, referencia o detalle del movimiento"></textarea></label>
+      </div>
+      <p class="form-hint" id="movement-hint">La entrada incrementará el stock de la ubicación seleccionada.</p>
+      <div class="modal-actions"><button type="button" class="button secondary" data-close="movement-dialog">Cancelar</button><button class="button primary" type="submit">Confirmar movimiento</button></div>
+    </form>
+  </dialog>
+
+  <div id="toast-region" class="toast-region" aria-live="polite"></div>
+  <script src="{{ url_for('static', path='/js/app.js') }}" defer></script>
+</body>
+</html>
