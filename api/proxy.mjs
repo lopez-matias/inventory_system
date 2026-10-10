@@ -1,6 +1,6 @@
 import https from "node:https";
 
-const HOST = "cleanup-mirrors-mystery-surely.trycloudflare.com";
+const HOST = "plasma-hits-dispatched-edmonton.trycloudflare.com";
 
 export default function handler(req, res) {
   if (!["GET", "HEAD"].includes(req.method)) {
