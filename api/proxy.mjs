@@ -1,6 +1,6 @@
 import https from "node:https";
 
-const HOST = "matuhp.tail8153cd.ts.net";
+const HOST = "cleanup-mirrors-mystery-surely.trycloudflare.com";
 
 export default function handler(req, res) {
   if (!["GET", "HEAD"].includes(req.method)) {
