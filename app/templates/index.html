@@ -6,7 +6,7 @@
   <meta name="description" content="Panel centralizado para controlar productos, ubicaciones y movimientos de stock.">
   <title>{{ app_name }}</title>
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Crect width='24' height='24' rx='6' fill='%232368d8'/%3E%3Cpath d='m5 8 7-4 7 4v8l-7 4-7-4V8Zm0 0 7 4m7-4-7 4m0 0v8' fill='none' stroke='white' stroke-width='1.4'/%3E%3C/svg%3E">
-  <link rel="stylesheet" href="{{ url_for('static', path='/css/styles.css') }}">
+  <link rel="stylesheet" href="/static/css/styles.css">
 </head>
 <body>
   <div class="app-shell">
@@ -111,6 +111,6 @@
   </dialog>
 
   <div id="toast-region" class="toast-region" aria-live="polite"></div>
-  <script src="{{ url_for('static', path='/js/app.js') }}" defer></script>
+  <script src="/static/js/app.js" defer></script>
 </body>
 </html>
